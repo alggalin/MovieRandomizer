@@ -1,5 +1,6 @@
 package ag.android.movierandomizer
 
+import ag.android.movierandomizer.data.MovieResponse
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,6 +13,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import ag.android.movierandomizer.ui.theme.MovieRandomizerTheme
+import android.annotation.SuppressLint
+import android.util.Log
+import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,12 +40,20 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier.fillMaxSize()
-    )
+
+    val apiKey = BuildConfig.API_KEY
+
+    lateinit var movieViewModel: MovieViewModel
+
+    val apiService = RetrofitInstance.api
+
+    val movieRepository = MoviesRepository(apiService)
+
+    movieViewModel.fetchGenres(apiKey)
+
 }
 
 @Preview(showBackground = true)

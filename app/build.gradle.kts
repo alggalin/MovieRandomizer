@@ -1,11 +1,10 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
 }
-
-val apiKey: String = gradleLocalProperties(rootDir, providers).getProperty("API_KEY", "")
 
 android {
     namespace = "ag.android.movierandomizer"
@@ -23,11 +22,10 @@ android {
             useSupportLibrary = true
         }
 
-        resValue(
-            type = "string",
-            name = "apiKey",
-            value = apiKey
-        )
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+
+        buildConfigField("String", "API_KEY", properties.getProperty("API_KEY"))
     }
 
     buildTypes {
@@ -48,6 +46,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -60,6 +59,13 @@ android {
 }
 
 dependencies {
+
+    // Retrofit dependency
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+
+    // JSON parsing (Gson)
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
