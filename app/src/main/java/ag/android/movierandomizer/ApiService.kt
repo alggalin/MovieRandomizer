@@ -1,5 +1,6 @@
 package ag.android.movierandomizer
 
+import ag.android.movierandomizer.data.GenreResponse
 import ag.android.movierandomizer.data.MovieResponse
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -10,10 +11,10 @@ import retrofit2.http.Query
 // API Interface defines the HTTP requests (GET, POST, etc)
 interface MovieApiService {
     @GET("3/genre/movie/list")
-    fun getGenres(
+    suspend fun getGenres(
         @Query("api_key") apiKey: String,
         @Query("language") language: String = "en-US"
-    ): Call<MovieResponse>
+    ): GenreResponse
 }
 
 // Create Retrofit instance
@@ -27,5 +28,7 @@ object RetrofitInstance {
         .addConverterFactory(GsonConverterFactory.create()) // Converter to handle JSON data
         .build()
 
-    val api: MovieApiService = retrofit.create(MovieApiService::class.java)
+    val retrofitService: MovieApiService by lazy {
+        retrofit.create(MovieApiService::class.java)
+    }
 }

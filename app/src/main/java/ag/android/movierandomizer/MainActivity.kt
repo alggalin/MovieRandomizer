@@ -15,6 +15,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import ag.android.movierandomizer.ui.theme.MovieRandomizerTheme
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +32,19 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val apiService = RetrofitInstance.retrofitService
+        val moviesRepository = MoviesRepository(apiService)
+        // create instance of viewmodel factory
+        val factory = MovieViewModelFactory(moviesRepository)
+
+        val movieViewModel = ViewModelProvider(this, factory)[MovieViewModel::class.java]
+
         setContent {
             MovieRandomizerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        movieViewModel = movieViewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -40,26 +53,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting(movieViewModel: MovieViewModel, modifier: Modifier = Modifier) {
+    val genreResponse by movieViewModel.genreResponse.observeAsState()
 
-    val apiKey = BuildConfig.API_KEY
+    LaunchedEffect(Unit) {
+        movieViewModel.getGenres()
+    }
 
-    lateinit var movieViewModel: MovieViewModel
-
-    val apiService = RetrofitInstance.api
-
-    val movieRepository = MoviesRepository(apiService)
-
-    movieViewModel.fetchGenres(apiKey)
-
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MovieRandomizerTheme {
-        Greeting("Android")
+    Column(modifier) {
+        genreResponse?.let { response ->
+            Text("Genres: ${response.genres.joinToString { it.name }}")
+        } ?: run {
+            Text("Loading genres...")
+        }
     }
 }

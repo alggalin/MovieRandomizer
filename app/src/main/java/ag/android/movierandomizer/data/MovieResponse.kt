@@ -18,3 +18,13 @@ data class Movie (
     val vote_average: Double,
     val vote_count: Int
 )
+
+data class GenreResponse (
+    val genres: List<Genre>
+)
+
+// Data returned from a genre
+data class Genre(
+    val id: Int,
+    val name: String
+)
